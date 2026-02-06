@@ -20,37 +20,74 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const spotsLeft = details.max_participants - details.participants.length;
 
-        // Create participants list HTML
-        let participantsHTML = '';
+        // Create activity content safely without using innerHTML
+        const titleEl = document.createElement("h4");
+        titleEl.textContent = name;
+
+        const descriptionEl = document.createElement("p");
+        descriptionEl.textContent = details.description;
+
+        const scheduleEl = document.createElement("p");
+        const scheduleStrong = document.createElement("strong");
+        scheduleStrong.textContent = "Schedule:";
+        scheduleEl.appendChild(scheduleStrong);
+        scheduleEl.appendChild(document.createTextNode(" " + details.schedule));
+
+        const availabilityEl = document.createElement("p");
+        const availabilityStrong = document.createElement("strong");
+        availabilityStrong.textContent = "Availability:";
+        availabilityEl.appendChild(availabilityStrong);
+        availabilityEl.appendChild(document.createTextNode(" " + spotsLeft + " spots left"));
+
+        const participantsSection = document.createElement("div");
+        participantsSection.className = "participants-section";
+
+        const participantsHeader = document.createElement("h5");
+        participantsHeader.textContent = "Current Participants:";
+        participantsSection.appendChild(participantsHeader);
+
         if (details.participants.length > 0) {
-          const participantItems = details.participants
-            .map(email => `<li><span class="participant-email">${email}</span><button class="delete-btn" data-activity="${name}" data-email="${email}" title="Remove participant">✕</button></li>`)
-            .join('');
-          participantsHTML = `
-            <div class="participants-section">
-              <h5>Current Participants:</h5>
-              <ul class="participants-list">
-                ${participantItems}
-              </ul>
-            </div>
-          `;
+          const participantsList = document.createElement("ul");
+          participantsList.className = "participants-list";
+
+          details.participants.forEach((email) => {
+            const li = document.createElement("li");
+
+            const emailSpan = document.createElement("span");
+            emailSpan.className = "participant-email";
+            emailSpan.textContent = email;
+
+            const deleteBtn = document.createElement("button");
+            deleteBtn.className = "delete-btn";
+            deleteBtn.type = "button";
+            deleteBtn.title = "Remove participant";
+            deleteBtn.textContent = "✕";
+            deleteBtn.dataset.activity = name;
+            deleteBtn.dataset.email = email;
+
+            li.appendChild(emailSpan);
+            li.appendChild(deleteBtn);
+            participantsList.appendChild(li);
+          });
+
+          participantsSection.appendChild(participantsList);
         } else {
-          participantsHTML = `
-            <div class="participants-section">
-              <h5>Current Participants:</h5>
-              <p class="no-participants">No participants yet. Be the first to sign up!</p>
-            </div>
-          `;
+          const noParticipants = document.createElement("p");
+          noParticipants.className = "no-participants";
+          noParticipants.textContent = "No participants yet. Be the first to sign up!";
+          participantsSection.appendChild(noParticipants);
         }
 
-        activityCard.innerHTML = `
-          <h4>${name}</h4>
-          <p>${details.description}</p>
-          <p><strong>Schedule:</strong> ${details.schedule}</p>
-          <p><strong>Availability:</strong> ${spotsLeft} spots left</p>
-          ${participantsHTML}
-        `;
+        // Clear any existing content and append the newly created elements
+        while (activityCard.firstChild) {
+          activityCard.removeChild(activityCard.firstChild);
+        }
 
+        activityCard.appendChild(titleEl);
+        activityCard.appendChild(descriptionEl);
+        activityCard.appendChild(scheduleEl);
+        activityCard.appendChild(availabilityEl);
+        activityCard.appendChild(participantsSection);
         activitiesList.appendChild(activityCard);
 
         // Add option to select dropdown
